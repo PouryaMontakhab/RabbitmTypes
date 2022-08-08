@@ -2,6 +2,6 @@
 using RabbitMQ.Client;
 
 var messageSender = new SendMessage();
-messageSender.SendTopicMessage("ostadbash.com");
+messageSender.SendFanoutMessage("ostadbash.com");
 
 Console.Read();

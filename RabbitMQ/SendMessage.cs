@@ -8,7 +8,7 @@ namespace RabbitMQ
     {
         string Username = "guest";
         string Password = "guest";
-        string Hostname = "http://localhost:15672/";
+        string Hostname = "localhost";
 
         public void SendDirectMessage(string message)
         {
@@ -38,7 +38,21 @@ namespace RabbitMQ
                 Console.WriteLine("topic message sent");
             }
         }
-
+        public void SendFanoutMessage(string message)
+        {
+            var connectionFactory = new RabbitMQ.Client.ConnectionFactory
+            {
+                UserName = Username,
+                Password = Password,
+                HostName = Hostname
+            };
+            using (var connection = connectionFactory.CreateConnection())
+            using (var model = connection.CreateModel())
+            {
+                FanoutExchange(message, model);
+                Console.WriteLine("topic message sent");
+            }
+        }
         private void DirectExchange(string message, IModel model)
         {
 
@@ -61,6 +75,18 @@ namespace RabbitMQ
             properties.Persistent = false;
             byte[] messageBuffer = Encoding.Default.GetBytes(message);
             model.BasicPublish("topicExchange", "tasdlfj.iran.jsodf", properties, messageBuffer);
+        }
+        private void FanoutExchange(string message, IModel model)
+        {
+            model.ExchangeDeclare("fanoutExchange", ExchangeType.Fanout, false, true);
+            model.QueueDeclare("firstQueue", false, true, false, null);
+            model.QueueDeclare("secondQueue", false, true, false, null);
+            model.QueueBind("firstQueue", "fanoutExchange",String.Empty);
+            model.QueueBind("secondQueue", "fanoutExchange", String.Empty);
+            var properties = model.CreateBasicProperties();
+            properties.Persistent = false;
+            byte[] messageBuffer = Encoding.Default.GetBytes(message);
+            model.BasicPublish("fanoutExchange",String.Empty, properties, messageBuffer);
         }
     }
 }
